@@ -1,0 +1,27 @@
+{
+  "name": "dominionator-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@atlaskit/banner": "^4.2.2",
+    "@atlaskit/css-reset": "^1.2.3",
+    "@atlaskit/dynamic-table": "^7.2.1",
+    "@atlaskit/field-text": "^4.2.1",
+    "@atlaskit/multi-select": "^8.1.2",
+    "@atlaskit/navigation": "^29.2.2",
+    "@atlaskit/page": "^5.1.2",
+    "@atlaskit/spinner": "^4.2.1",
+    "@atlaskit/theme": "^2.4.1",
+    "@atlaskit/toggle": "^2.9.1",
+    "ajv": "^6.3.0",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-scripts": "1.1.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
