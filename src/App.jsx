@@ -9,11 +9,11 @@ import { AtlaskitThemeProvider } from '@atlaskit/theme';
 import PotionIcon from '@atlaskit/icon/glyph/jira/labs';
 import Lozenge from '@atlaskit/lozenge';
 import { FieldTextStateless as FieldText } from "@atlaskit/field-text";
+import Tooltip from "@atlaskit/tooltip";
 
 import DynamicTable from '@atlaskit/dynamic-table';
 
 import './App.scss';
-
 
 const SET = "Set";
 const NAME = "Card Name";
@@ -22,13 +22,27 @@ const TYPE = "Type";
 const TAGS = "Tags";
 const IMG = "Image Address";
 
+const SET_ICONS = {
+  "Dominion": "http://wiki.dominionstrategy.com/images/thumb/b/b0/Dominion_icon.png/20px-Dominion_icon.png",
+  "Intrigue": "http://wiki.dominionstrategy.com/images/thumb/c/cf/Intrigue_icon.png/19px-Intrigue_icon.png",
+  "Dark Ages": "http://wiki.dominionstrategy.com/images/thumb/1/1b/Dark_Ages_icon.png/17px-Dark_Ages_icon.png",
+  "Prosperity": "http://wiki.dominionstrategy.com/images/thumb/f/fb/Prosperity_icon.png/20px-Prosperity_icon.png",
+  "Alchemy": "http://wiki.dominionstrategy.com/images/thumb/6/6a/Alchemy_icon.png/12px-Alchemy_icon.png",
+  "Seaside": "http://wiki.dominionstrategy.com/images/thumb/c/c5/Seaside_icon.png/20px-Seaside_icon.png",
+  "Cornucopia": "http://wiki.dominionstrategy.com/images/thumb/2/20/Cornucopia_icon.png/19px-Cornucopia_icon.png",
+  "Hinterlands": "http://wiki.dominionstrategy.com/images/thumb/2/28/Hinterlands_icon.png/20px-Hinterlands_icon.png",
+  "Guilds": "http://wiki.dominionstrategy.com/images/thumb/3/36/Guilds_icon.png/17px-Guilds_icon.png",
+  "Adventures": "http://wiki.dominionstrategy.com/images/thumb/5/5e/Adventures_icon.png/17px-Adventures_icon.png",
+  "Empires": "http://wiki.dominionstrategy.com/images/thumb/2/2a/Empires_icon.png/20px-Empires_icon.png",
+  "Nocturne": "http://wiki.dominionstrategy.com/images/thumb/a/aa/Nocturne_icon.png/19px-Nocturne_icon.png",
+};
+
 const HEAD = {
   cells: [
     {
       key: NAME,
       content: NAME,
       isSortable: true,
-      width: "145px",
     },
     {
       key: COST,
@@ -41,15 +55,12 @@ const HEAD = {
       content: TYPE,
       shouldTruncate: true,
     },
-    // {
-    //   key: TAGS,
-    //   content: TAGS,
-    //   shouldTruncate: true,
-    // },
     {
       key: SET,
       content: SET,
       shouldTruncate: true,
+      isSortable: true,
+      width: "40px",
     },
   ]
 };
@@ -171,6 +182,18 @@ class App extends Component {
       })
     }
   }
+  renderSet = (set) => {
+    // If there's 1st/2nd edition crap just get rid of it
+    let setName = set.match(/^(.+?)( \(.+\))?$/)[1];
+    return (
+      <Tooltip content={setName} position="left">
+        <img
+          src={SET_ICONS[setName]}
+          alt={setName}
+        />
+      </Tooltip>
+    );
+  };
   render() {
     const {
       min,
@@ -200,20 +223,13 @@ class App extends Component {
           key: card[TYPE][0], // Key shouldn't matter because we're not sorting on this column?
           content: card[TYPE].join(", "),
         },
-        // {
-        //   key: card[TAGS][0], // Key shouldn't matter because we're not sorting on this column?
-        //   content: card[TAGS].join(", "),
-        // },
         {
           // If the length is more than 1, then we've got a 1st vs 2nd edition situation. We can
           // sort on whichever, because the sort will come in based on the name (unless you're
           // comparing "Dominion (1st Edition)" and "Dominion (2nd Edition)" the part in the parens
-          // doesn't matter)
+          // doesn't matter).
           key: card[SET][0],
-          // Get rid of the first/second edition stuff. Our filter can still filter on them, but the
-          // table doesn't really need to show them. The only thing that really matters is if it's
-          // only in first/second edition.
-          content: card[SET].length === 1 ? card[SET][0] : card[SET][0].match(/^(.+?)( \(.+\))?$/)[1],
+          content: this.renderSet(card[SET][0]),
         },
       ],
       key: card[NAME]
@@ -223,78 +239,80 @@ class App extends Component {
         <Page>
           <Grid>
             <GridColumn>
-              <PageHeader
-                bottomBar={(
-                  <Grid>
-                    <GridColumn medium={6}>
-                      <div className="fullWidthText">
-                        <FieldText
-                          label="Name"
-                          placeholder="Search..."
-                          value={name}
-                          onChange={e => this.setState({ name: e.target.value })}
-                        />
-                      </div>
-                    </GridColumn>
-                    <GridColumn medium={6}>
-                      <div className="fullWidthSelect">
-                        <MultiSelect
-                          label="Expansion"
-                          placeholder="All Expansions"
-                          items={baseData.sets.map(set => ({ value: set, content: set }))}
-                          onSelectedChange={({ items }) => this.setState({ sets: items.map(item => item.value)})}
-                        />
-                      </div>
-                    </GridColumn>
-                    <GridColumn medium={6}>
-                      <div className="fullWidthSelect">
-                        <MultiSelect
-                          label="Type"
-                          placeholder="All types"
-                          items={baseData.types.map(type => ({ value: type, content: type }))}
-                          onSelectedChange={({ items }) => this.setState({ types: items.map(item => item.value)})}
-                        />
-                      </div>
-                    </GridColumn>
-                    <GridColumn medium={6}>
-                      <Label label={`Max Cost (${min})`} />
-                      <div className="costSliderContainer">
-                        <FieldRange
-                          step={1}
-                          min={baseData.min}
-                          max={baseData.max}
-                          value={min}
-                          onChange={value => this.setState({ min: value })}
-                        />
-                      </div>
-                    </GridColumn>
-                    <GridColumn medium={6}>
-                      <div className="fullWidthSelect">
-                        <MultiSelect
-                          label="Tags"
-                          placeholder="All tags"
-                          items={baseData.tags.map(tag => ({ value: tag, content: tag }))}
-                          onSelectedChange={({ items }) => this.setState({ tags: items.map(item => item.value)})}
-                        />
-                      </div>
-                    </GridColumn>
-                    <GridColumn medium={6}>
-                      <Label label={`Max Cost (${max})`} />
-                      <div className="costSliderContainer">
-                        <FieldRange
-                          step={1}
-                          min={baseData.min}
-                          max={baseData.max}
-                          value={max}
-                          onChange={value => this.setState({ max: value })}
-                        />
-                      </div>
-                    </GridColumn>
-                  </Grid>
-                )}
-              >
-                Dominionator
-              </PageHeader>
+              <div className="header">
+                <PageHeader
+                  bottomBar={(
+                    <Grid>
+                      <GridColumn medium={6}>
+                        <div className="fullWidthText">
+                          <FieldText
+                            label="Name"
+                            placeholder="Search..."
+                            value={name}
+                            onChange={e => this.setState({ name: e.target.value })}
+                          />
+                        </div>
+                      </GridColumn>
+                      <GridColumn medium={6}>
+                        <div className="fullWidthSelect">
+                          <MultiSelect
+                            label="Expansion"
+                            placeholder="All Expansions"
+                            items={baseData.sets.map(set => ({ value: set, content: set }))}
+                            onSelectedChange={({ items }) => this.setState({ sets: items.map(item => item.value)})}
+                          />
+                        </div>
+                      </GridColumn>
+                      <GridColumn medium={6}>
+                        <div className="fullWidthSelect">
+                          <MultiSelect
+                            label="Type"
+                            placeholder="All types"
+                            items={baseData.types.map(type => ({ value: type, content: type }))}
+                            onSelectedChange={({ items }) => this.setState({ types: items.map(item => item.value)})}
+                          />
+                        </div>
+                      </GridColumn>
+                      <GridColumn medium={6}>
+                        <Label label={`Min Cost (${min})`} />
+                        <div className="costSliderContainer">
+                          <FieldRange
+                            step={1}
+                            min={baseData.min}
+                            max={baseData.max}
+                            value={min}
+                            onChange={value => this.setState({ min: value })}
+                          />
+                        </div>
+                      </GridColumn>
+                      <GridColumn medium={6}>
+                        <div className="fullWidthSelect">
+                          <MultiSelect
+                            label="Tags"
+                            placeholder="All tags"
+                            items={baseData.tags.map(tag => ({ value: tag, content: tag }))}
+                            onSelectedChange={({ items }) => this.setState({ tags: items.map(item => item.value)})}
+                          />
+                        </div>
+                      </GridColumn>
+                      <GridColumn medium={6}>
+                        <Label label={`Max Cost (${max})`} />
+                        <div className="costSliderContainer">
+                          <FieldRange
+                            step={1}
+                            min={baseData.min}
+                            max={baseData.max}
+                            value={max}
+                            onChange={value => this.setState({ max: value })}
+                          />
+                        </div>
+                      </GridColumn>
+                    </Grid>
+                  )}
+                >
+                  <span className="pageHeader">Dominionator</span>
+                </PageHeader>
+              </div>
               <DynamicTable
                 head={HEAD}
                 rows={rows}

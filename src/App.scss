@@ -1,3 +1,12 @@
+.header {
+  margin-bottom: 20px;
+  & > div > div {
+    margin: 0;
+    h1 {
+      margin: 0;
+    }
+  }
+}
 .fullWidthSelect {
   display: flex;
   flex-direction: column;
