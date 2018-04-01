@@ -1,16 +1,17 @@
 import React, { Component } from 'react';
 
-// import Navigation from '@atlaskit/navigation';
-// import Banner from '@atlaskit/banner';
-// import AkToggle from '@atlaskit/toggle';
 import Page, { Grid, GridColumn } from '@atlaskit/page';
 import PageHeader from '@atlaskit/page-header';
 import MultiSelect from '@atlaskit/multi-select';
 import FieldRange from '@atlaskit/field-range';
-import FieldBase, { Label } from '@atlaskit/field-base';
-import Checkbox from '@atlaskit/checkbox';
-import DynamicTable from '@atlaskit/dynamic-table';
+import { Label } from '@atlaskit/field-base';
 import { AtlaskitThemeProvider } from '@atlaskit/theme';
+import PotionIcon from '@atlaskit/icon/glyph/jira/labs';
+import Lozenge from '@atlaskit/lozenge';
+import { FieldTextStateless as FieldText } from "@atlaskit/field-text";
+
+import DynamicTable from '@atlaskit/dynamic-table';
+
 import './App.scss';
 
 
@@ -21,8 +22,37 @@ const TYPE = "Type";
 const TAGS = "Tags";
 const IMG = "Image Address";
 
-const COL_ORDER = [NAME, COST, TYPE];
-
+const HEAD = {
+  cells: [
+    {
+      key: NAME,
+      content: NAME,
+      isSortable: true,
+      width: "145px",
+    },
+    {
+      key: COST,
+      content: COST,
+      isSortable: true,
+      width: "70px",
+    },
+    {
+      key: TYPE,
+      content: TYPE,
+      shouldTruncate: true,
+    },
+    // {
+    //   key: TAGS,
+    //   content: TAGS,
+    //   shouldTruncate: true,
+    // },
+    {
+      key: SET,
+      content: SET,
+      shouldTruncate: true,
+    },
+  ]
+};
 
 class App extends Component {
   constructor(props) {
@@ -30,13 +60,12 @@ class App extends Component {
 
     const baseData = this.processData();
     this.state = {
-      // isBannerOpen: false,
-      // navigationWidth: 0,
-      // isNavigationOpen: false,
       baseData,
       ...baseData,
-      min: null,
-      max: null,
+      sets: [],
+      types: [],
+      tags: [],
+      name: '',
     };
   }
   processData = () => {
@@ -48,154 +77,217 @@ class App extends Component {
     const typeSet = new Set();
     const tagSet = new Set();
 
+    let max = 0;
+
     const cards = data.map((card) => {
-      setSet.add(card[SET]);
-      typeSet.add(card[TYPE]);
-      console.log(card);
-      let tags = card[TAGS].split(",");
-      tags.forEach(tag => tagSet.add(tag));
+      card[SET].forEach(set => setSet.add(set));
+      card[TYPE].forEach(type => typeSet.add(type));
+      card[TAGS].forEach(tag => tag && tagSet.add(tag));
+      if (card[COST][0] > max) {
+        max = card[COST][0];
+      }
       return {
         ...card,
-        [TAGS]: tags,
       };
     });
     return {
-      sets: Array.from(setSet),
-      types: Array.from(typeSet),
-      tags: Array.from(tagSet),
+      sets: Array.from(setSet).sort(),
+      types: Array.from(typeSet).sort(),
+      tags: Array.from(tagSet).sort(),
       cards,
+      max,
+      min: 0,
     };
   }
-  renderCostRow = (key, value) => (
-    <div className="costRow">
-      <div className="checkboxRow">
-        <Checkbox
-          label={`${key.charAt(0).toUpperCase()}${key.substr(1)} Cost`}
-          onChange={(e, val) => {
-            const { isChecked } = e;
-            if (isChecked) {
-              this.setState({ [key]: 0 });
-            } else {
-              this.setState({ [key]: null });
+  componentDidUpdate(nextProps, nextState) {
+    const {
+      baseData,
+      name,
+      min,
+      max,
+      types,
+      sets,
+      tags,
+    } = this.state;
+    const watchedKeys = ["name", "min", "max", "types", "sets", "tags"];
+    if (watchedKeys.reduce((changed, key) => changed || this.state[key] !== nextState[key], false)) {
+      // TODO: we can probably memoize a lot of this
+      let lcName = name.toLowerCase();
+      this.setState({
+        cards: baseData.cards.filter((card) => {
+          if(!card[NAME].toLowerCase().includes(lcName)) {
+            return false;
+          }
+          if (max && parseInt(card[COST][0], 10) > max) {
+            return false;
+          }
+          if (min && parseInt(card[COST][0], 10) < min) {
+            return false;
+          }
+          if (types.length) {
+            let matched = false;
+            for(let cardType of card[TYPE]) {
+              for(let selectedType of types) {
+                if (cardType === selectedType) {
+                  matched = true;
+                  break;
+                }
+              }
             }
-          }}
-        />
-        {value != null &&  <span className="number">:&nbsp;{value}</span>}
-      </div>
-      {value != null && (
-        <FieldRange
-          step={1}
-          min={0}
-          max={8}
-          value={value}
-          onChange={value => this.setState({ [key]: value })}
-        />
-      )}
-    </div>
-  )
+            if (!matched) {
+              return false;
+            }
+          }
+          if (sets.length) {
+            let matched = false;
+            for(let cardSet of card[SET]) {
+              for(let selectedSet of sets) {
+                if (cardSet === selectedSet) {
+                  matched = true;
+                  break;
+                }
+              }
+            }
+            if (!matched) {
+              return false;
+            }
+          }
+          if (tags.length) {
+            let matched = false;
+            for(let cardTag of card[TAGS]) {
+              for(let selectedTag of tags) {
+                if (cardTag === selectedTag) {
+                  matched = true;
+                  break;
+                }
+              }
+            }
+            if (!matched) {
+              return false;
+            }
+          }
+          return true;
+        }),
+      })
+    }
+  }
   render() {
     const {
       min,
       max,
       cards,
+      name,
+      baseData,
     } = this.state;
-
-    const head = {
-      cells: COL_ORDER.map(col => ({
-        key: col,
-        content: col,
-        isSortable: true,
-      }))
-    };
-    console.log(head);
     const rows = cards.map(card => ({
-      cells: COL_ORDER.map(key => ({
-        key,
-        content: card[key]
-      })),
+      cells: [
+        {
+          key: card[NAME],
+          content: card[NAME],
+        },
+        {
+          key: card[COST][0],
+          content: (
+            <div className="costTableCell">
+              {card[COST].map(cost => cost === "Potion" ?
+                <PotionIcon key="potion"/>
+                : <Lozenge isBold appearance="moved" key="cost">{cost}</Lozenge>
+              )}
+            </div>
+          ),
+        },
+        {
+          key: card[TYPE][0], // Key shouldn't matter because we're not sorting on this column?
+          content: card[TYPE].join(", "),
+        },
+        // {
+        //   key: card[TAGS][0], // Key shouldn't matter because we're not sorting on this column?
+        //   content: card[TAGS].join(", "),
+        // },
+        {
+          // If the length is more than 1, then we've got a 1st vs 2nd edition situation. We can
+          // sort on whichever, because the sort will come in based on the name (unless you're
+          // comparing "Dominion (1st Edition)" and "Dominion (2nd Edition)" the part in the parens
+          // doesn't matter)
+          key: card[SET][0],
+          // Get rid of the first/second edition stuff. Our filter can still filter on them, but the
+          // table doesn't really need to show them. The only thing that really matters is if it's
+          // only in first/second edition.
+          content: card[SET].length === 1 ? card[SET][0] : card[SET][0].match(/^(.+?)( \(.+\))?$/)[1],
+        },
+      ],
       key: card[NAME]
     }));
-    console.log(rows);
     return (
       <AtlaskitThemeProvider mode="light">
-        <Page
-          // isBannerOpen={this.state.isBannerOpen}
-          // banner={
-          //   <Banner appearance="error" isOpen={this.state.isBannerOpen}>
-          //     Example Banner
-          //   </Banner>
-          // }
-          // navigation={
-          //   <Navigation
-          //     width={this.state.navigationWidth}
-          //     isOpen={this.state.isNavigationOpen}
-          //     onResize={({ width, isOpen }) => {
-          //       this.setState({
-          //         navigationWidth: width,
-          //         isNavigationOpen: isOpen,
-          //       });
-          //     }}
-          //   >
-          //     Example Navigation
-          //   </Navigation>
-          // }
-        >
+        <Page>
           <Grid>
-            <GridColumn small={12}>
+            <GridColumn>
               <PageHeader
                 bottomBar={(
                   <Grid>
-                    <GridColumn small={12} medium={6}>
+                    <GridColumn medium={6}>
+                      <div className="fullWidthText">
+                        <FieldText
+                          label="Name"
+                          placeholder="Search..."
+                          value={name}
+                          onChange={e => this.setState({ name: e.target.value })}
+                        />
+                      </div>
+                    </GridColumn>
+                    <GridColumn medium={6}>
                       <div className="fullWidthSelect">
                         <MultiSelect
                           label="Expansion"
                           placeholder="All Expansions"
-                          items={[
-                            { content: "Dominion (1st Edition)", value: "dominion1"},
-                            { content: "Dominion (2nd Edition)", value: "dominion2"},
-                            { content: "Intrigue (1st Edition)", value: "intrigue1"},
-                            { content: "Intrigue (2nd Edition)", value: "intrigue2"},
-                          ]}
+                          items={baseData.sets.map(set => ({ value: set, content: set }))}
+                          onSelectedChange={({ items }) => this.setState({ sets: items.map(item => item.value)})}
                         />
                       </div>
                     </GridColumn>
-                    <GridColumn small={12} medium={6}>
+                    <GridColumn medium={6}>
                       <div className="fullWidthSelect">
                         <MultiSelect
                           label="Type"
                           placeholder="All types"
-                          items={[
-                            { content: "Action", value: "action"},
-                            { content: "Attack", value: "attack"},
-                            { content: "Treasure", value: "treasure"},
-                            { content: "Victory", value: "victory"},
-                          ]}
+                          items={baseData.types.map(type => ({ value: type, content: type }))}
+                          onSelectedChange={({ items }) => this.setState({ types: items.map(item => item.value)})}
                         />
                       </div>
                     </GridColumn>
-                    <GridColumn small={12} medium={6}>
+                    <GridColumn medium={6}>
+                      <Label label={`Max Cost (${min})`} />
+                      <div className="costSliderContainer">
+                        <FieldRange
+                          step={1}
+                          min={baseData.min}
+                          max={baseData.max}
+                          value={min}
+                          onChange={value => this.setState({ min: value })}
+                        />
+                      </div>
+                    </GridColumn>
+                    <GridColumn medium={6}>
                       <div className="fullWidthSelect">
                         <MultiSelect
                           label="Tags"
                           placeholder="All tags"
-                          items={[
-                            { content: "+ Cards", value: "plus_cards"},
-                            { content: "+ Action", value: "plus_action"},
-                            { content: "+ Actions", value: "plus_actions"},
-                            { content: "Trash", value: "trash"},
-                          ]}
+                          items={baseData.tags.map(tag => ({ value: tag, content: tag }))}
+                          onSelectedChange={({ items }) => this.setState({ tags: items.map(item => item.value)})}
                         />
                       </div>
                     </GridColumn>
-                    <GridColumn small={12} medium={6}>
-                      <Label label="Cost" />
-                      <div className="costField">
-                        <FieldBase>
-                          <div className="costGroup">
-                            {this.renderCostRow("min", min)}
-                            {this.renderCostRow("max", max)}
-                          </div>
-                        </FieldBase>
+                    <GridColumn medium={6}>
+                      <Label label={`Max Cost (${max})`} />
+                      <div className="costSliderContainer">
+                        <FieldRange
+                          step={1}
+                          min={baseData.min}
+                          max={baseData.max}
+                          value={max}
+                          onChange={value => this.setState({ max: value })}
+                        />
                       </div>
                     </GridColumn>
                   </Grid>
@@ -204,17 +296,14 @@ class App extends Component {
                 Dominionator
               </PageHeader>
               <DynamicTable
-                head={head}
+                head={HEAD}
                 rows={rows}
                 rowsPerPage={10}
                 defaultPage={1}
-                loadingSpinnerSize="large"
                 isLoading={false}
                 isFixedSize
-                defaultSortKey="term"
+                defaultSortKey={NAME}
                 defaultSortOrder="ASC"
-                onSort={() => console.log('onSort')}
-                onSetPage={() => console.log('onSetPage')}
               />
             </GridColumn>
           </Grid>

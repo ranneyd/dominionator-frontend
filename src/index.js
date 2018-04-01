@@ -7,7 +7,7 @@ import registerServiceWorker from './registerServiceWorker';
 
 import "./index.scss";
 
-import data from "./Data";
+import data from "./data";
 
 ReactDOM.render(<App data={data} />, document.getElementById('root'));
 registerServiceWorker();

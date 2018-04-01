@@ -3,38 +3,18 @@
   flex-direction: column;
   justify-content: stretch;
 }
-.costField {
-  width: 100%;
-  & > * {
-    width: 100%;
-  }
-  .costGroup {
-    display: flex;
-    flex-direction: column;
-    justify-content: stretch;
-    width: 100%;
-    .costRow {
-      display: flex;
-      flex-direction: column;
-      .checkboxRow {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        .number {
-          // margin-left: 10px;
-        }
-      }
-      & > * {
-        // &:first-child {
-        //   width: 100px;
-        //   height: 44px;
-        //   display: flex;
-        //   align-items: center;
-        // }
-        // &:last-child {
-        //   flex: 1;
-        // }
-      }
-    }
-  }
+.fullWidthText  > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+}
+.costTableCell > * {
+  vertical-align: middle;
+}
+.costSliderContainer {
+  background-color: #FAFBFC;
+  border: 1px solid #F4F5F7;
+  border-radius: 5px;
+  padding: 0 10px;
+  height: 40px;
 }
