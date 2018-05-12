@@ -17,9 +17,6 @@
   flex-direction: column;
   justify-content: stretch;
 }
-.costTableCell > * {
-  vertical-align: middle;
-}
 .costSliderContainer {
   background-color: #FAFBFC;
   border: 1px solid #F4F5F7;
@@ -27,3 +24,12 @@
   padding: 0 10px;
   height: 40px;
 }
+.tableBox {
+  width: 100%;
+  overflow-x: auto;
+  .costTableCell > * {
+    vertical-align: middle;
+  }
+}
+
+

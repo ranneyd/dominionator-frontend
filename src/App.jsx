@@ -50,11 +50,11 @@ const HEAD = {
       isSortable: true,
       width: "70px",
     },
-    {
-      key: TYPE,
-      content: TYPE,
-      shouldTruncate: true,
-    },
+    // {
+    //   key: TYPE,
+    //   content: TYPE,
+    //   shouldTruncate: true,
+    // },
     {
       key: SET,
       content: SET,
@@ -219,10 +219,10 @@ class App extends Component {
             </div>
           ),
         },
-        {
-          key: card[TYPE][0], // Key shouldn't matter because we're not sorting on this column?
-          content: card[TYPE].join(", "),
-        },
+        // {
+        //   key: card[TYPE][0], // Key shouldn't matter because we're not sorting on this column?
+        //   content: card[TYPE].join(", "),
+        // },
         {
           // If the length is more than 1, then we've got a 1st vs 2nd edition situation. We can
           // sort on whichever, because the sort will come in based on the name (unless you're
@@ -243,7 +243,7 @@ class App extends Component {
                 <PageHeader
                   bottomBar={(
                     <Grid>
-                      <GridColumn medium={6}>
+                      <GridColumn>
                         <div className="fullWidthText">
                           <FieldText
                             label="Name"
@@ -253,49 +253,43 @@ class App extends Component {
                           />
                         </div>
                       </GridColumn>
-                      <GridColumn medium={6}>
+                      <GridColumn>
                         <div className="fullWidthSelect">
                           <MultiSelect
                             label="Expansion"
                             placeholder="All Expansions"
+                            position="bottom left"
+                            shouldFlip={false}
                             items={baseData.sets.map(set => ({ value: set, content: set }))}
                             onSelectedChange={({ items }) => this.setState({ sets: items.map(item => item.value)})}
                           />
                         </div>
                       </GridColumn>
-                      <GridColumn medium={6}>
+                      <GridColumn>
                         <div className="fullWidthSelect">
                           <MultiSelect
                             label="Type"
                             placeholder="All types"
+                            position="bottom left"
+                            shouldFlip={false}
                             items={baseData.types.map(type => ({ value: type, content: type }))}
                             onSelectedChange={({ items }) => this.setState({ types: items.map(item => item.value)})}
                           />
                         </div>
                       </GridColumn>
-                      <GridColumn medium={6}>
-                        <Label label={`Min Cost (${min})`} />
-                        <div className="costSliderContainer">
-                          <FieldRange
-                            step={1}
-                            min={baseData.min}
-                            max={baseData.max}
-                            value={min}
-                            onChange={value => this.setState({ min: value })}
-                          />
-                        </div>
-                      </GridColumn>
-                      <GridColumn medium={6}>
+                      <GridColumn>
                         <div className="fullWidthSelect">
                           <MultiSelect
                             label="Tags"
                             placeholder="All tags"
+                            position="bottom left"
+                            shouldFlip={false}
                             items={baseData.tags.map(tag => ({ value: tag, content: tag }))}
                             onSelectedChange={({ items }) => this.setState({ tags: items.map(item => item.value)})}
                           />
                         </div>
                       </GridColumn>
-                      <GridColumn medium={6}>
+                      <GridColumn>
                         <Label label={`Max Cost (${max})`} />
                         <div className="costSliderContainer">
                           <FieldRange
@@ -307,22 +301,36 @@ class App extends Component {
                           />
                         </div>
                       </GridColumn>
+                      <GridColumn>
+                        <Label label={`Min Cost (${min})`} />
+                        <div className="costSliderContainer">
+                          <FieldRange
+                            step={1}
+                            min={baseData.min}
+                            max={baseData.max}
+                            value={min}
+                            onChange={value => this.setState({ min: value })}
+                          />
+                        </div>
+                      </GridColumn>
                     </Grid>
                   )}
                 >
                   <span className="pageHeader">Dominionator</span>
                 </PageHeader>
               </div>
-              <DynamicTable
-                head={HEAD}
-                rows={rows}
-                rowsPerPage={10}
-                defaultPage={1}
-                isLoading={false}
-                isFixedSize
-                defaultSortKey={NAME}
-                defaultSortOrder="ASC"
-              />
+              <div className="tableBox">
+                <DynamicTable
+                  head={HEAD}
+                  rows={rows}
+                  rowsPerPage={10}
+                  defaultPage={1}
+                  isLoading={false}
+                  isFixedSize={false}
+                  defaultSortKey={NAME}
+                  defaultSortOrder="ASC"
+                />
+              </div>
             </GridColumn>
           </Grid>
         </Page>
